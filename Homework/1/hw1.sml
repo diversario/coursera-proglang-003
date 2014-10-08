@@ -148,3 +148,36 @@ fun number_in_months_challenge (dates, months) =
 
 fun dates_in_months_challenge (dates, months) =
 	dates_in_months(dates, dedup(months))
+
+
+(* 13 *)
+fun is_leap (year) =
+	year mod 100 <> 0
+	andalso (year mod 400 = 0 orelse year mod 4 = 0)
+
+fun get_max_days (month, is_leap) =
+	if month < 1 orelse month > 12 then ~1
+	else
+	let val days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+		fun get_days (day_list, count) =
+			if count = month then hd day_list
+			else get_days(tl day_list, count + 1)
+
+		val max_days = get_days(days, 1)
+	in
+		if month = 2 andalso is_leap
+		then 29
+		else max_days
+	end
+
+fun reasonable_date (date: int*int*int) =
+	let
+		val year = #1 date
+		val month = #2 date
+		val day = #3 date
+		val max_days = get_max_days(month, is_leap(year))
+	in
+		if year <= 0 then false else
+		if month < 1 orelse month > 12 then false else
+		day >= 1 andalso day <= max_days 
+	end

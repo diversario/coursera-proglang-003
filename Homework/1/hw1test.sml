@@ -135,3 +135,15 @@ dates_in_months_challenge(dates, months_dups) = [
 	(2014, 03, 01)
 ];
 dates_in_months_challenge([], []) = [];
+
+(* 13 *)
+reasonable_date((2013, 01, 01)) = true;
+reasonable_date((2004, 02, 28)) = true;
+reasonable_date((2004, 02, 29)) = true;
+reasonable_date((2004, 02, 30)) = false;
+reasonable_date((2003, 03, 30)) = true;
+reasonable_date((10000, 12, 12)) = true;
+reasonable_date((2004, 13, 30)) = false;
+reasonable_date((2001, 10, 32)) = false;
+reasonable_date((0, 06, 30)) = false;
+reasonable_date((~1, 02, 1)) = false;
