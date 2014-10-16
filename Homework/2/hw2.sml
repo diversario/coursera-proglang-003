@@ -102,8 +102,11 @@ fun remove_card (cards, c, ex) =
 (* 2d *)
 fun all_same_color (cards) =
 	case cards of
-		x :: [] => true
-	| 	x :: y :: xs => x = y andalso all_same_color(y :: xs)
+		[] => true
+	|	x :: [] => true
+	| 	x :: y :: xs =>
+			card_color(x) = card_color(y)
+			andalso all_same_color(y :: xs)
 		
 
 (* 2e *)
@@ -127,4 +130,20 @@ fun score (held_cards, goal) =
  	in
 		if is_preliminary then pre_score
 		else pre_score div 2
+	end
+
+
+(* 2g *)
+fun officiate (cl, ml, goal) =
+	let fun play (held_cards, card_list, move_list) =
+		if sum_cards(held_cards) > goal then
+			score(held_cards, goal)
+		else
+		case (move_list, card_list) of
+		 	(Draw :: ms, card :: cs) => play(card :: held_cards, cs, ms)
+		|	(Discard(card) :: ms, _) =>
+				play(remove_card(held_cards, card, IllegalMove), card_list, ms)
+		|	_ => score(held_cards, goal)
+	in
+		play([], cl, ml)
 	end
