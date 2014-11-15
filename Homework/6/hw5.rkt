@@ -91,16 +91,20 @@
         [(fun? e)
          (closure env e)]
         [(closure? e) e]
-        [(call? e)
-         (let ([cl  (eval-under-env (call-funexp e) env)]
-               [arg (eval-under-env (call-actual e) env)])
-           (if (closure? cl)
-               (let* ([cl-fun (closure-fun cl)]
-                      [cl-env (closure-env cl)]
-                      [extended-env (cons (cons (fun-formal cl-fun) arg) env)]
-                      [new-env (if (fun-nameopt cl-fun) (cons (cons (fun-nameopt cl-fun) (fun-nameopt cl-fun)) extended-env) extended-env)])
-                 (eval-under-env (fun-body cl-fun) new-env))
-            (error (format "MUPL call applied to a non-closure: ~v" e))))]
+        [(call? e) 
+         (let ([v1 (eval-under-env (call-funexp e) env)]
+               [v2 (eval-under-env (call-actual e) env)])
+           (if (closure? v1)
+               (let* ([c1 (closure-fun v1)]
+                     [c2 (closure-env v1)]
+                     [cn (cons (fun-nameopt c1) v1)]
+                     [cf (cons (fun-formal c1) v2)])
+                 (eval-under-env 
+                  (fun-body c1)
+                  (if (eq? (car cn) #f)
+                      (cons cf c2)
+                      (cons cf (cons cn c2)))))
+               (error "MUPL call applied to non-closure")))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
 ;; Do NOT change
@@ -111,17 +115,31 @@
 
 (define (ifaunit e1 e2 e3) (call (fun #f "" (ifgreater (isaunit e1) (int 0) e2 e3)) (aunit)))
 
-(define (mlet* lstlst e2) "CHANGE")
+(define (mlet* lstlst e2)
+  (let ([f (λ(pr exp)
+             (let ([mletv (car pr)]
+                   [mletexp (cdr pr)])
+               (mlet mletv mletexp exp)))])
+    (foldr f e2 lstlst)))
 
-(define (ifeq e1 e2 e3 e4) "CHANGE")
+(define (ifeq e1 e2 e3 e4)
+  (mlet "_x" e1 (mlet "_y" e2
+    (ifgreater (var "_x") (var "_y") e4
+               (ifgreater (var "_y") (var "_x") e4 e3)))))
 
 ;; Problem 4
 
-(define mupl-map "CHANGE")
+(define mupl-map
+  (fun "outer" "mapf"
+    (fun "_map" "lst"
+       (ifgreater (isaunit (var "lst")) (int 0) (var "lst") ; done recursing
+                  (apair (call (var "mapf") (fst (var "lst"))) (call (var "_map") (snd (var "lst"))))))
+    ))
 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+        (fun #f "i"
+             (call (var "map") (fun #f "x" (add (var "x") (var "i")))))))
 
 ;; Challenge Problem
 
